@@ -6,3 +6,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(base_dir, 'd
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 
 app.config['SECRET_KEY'] = 'Bruce Wayne is the JOKER'
+
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'socialmurali@gmail.com'
+app.config['MAIL_PASSWORD'] = 'shree@301'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
