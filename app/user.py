@@ -78,7 +78,7 @@ class LoginRegister(Resource):
         if models.is_user_unique(email, user_json['phone']):
             added_user = add_user_to_db(email, password, user_json)
             id = added_user.id
-            send_verification_mail(added_user)
+            # send_verification_mail(added_user)
             op = {'id': id}
             return {'data': op}, 200
         else:
@@ -102,6 +102,21 @@ class EmailVerification(Resource):
             return response
 
 
+class ContactRequest(Resource):
+    def post(self):
+        contact_json = request.get_json()
+        contact_csv = contact_json['list']
+        contact_list = contact_csv.split(',')
+        response = []
+        for phone in contact_list:
+            print phone
+            user = User.query.filter_by(phone=phone).first()
+            if user:
+                op = marshal(user, data)
+                response.append(op)
+        return {'data':response}
+
 
 api.add_resource(LoginRegister, '/login')
 api.add_resource(EmailVerification, '/confirm/<string:token>')
+api.add_resource(ContactRequest, '/contacts')
