@@ -54,8 +54,11 @@ class User(db.Model):
 class Group(db.Model):
     __tablename__ = 'groups'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    adminId = db.Column(db.Integer, nullable=False,unique=False)
+    adminName = db.Column(db.String,nullable=False)
     name = db.Column(db.String(64), nullable=False)
     photo = db.Column(db.String, nullable=True)
+    userlist = db.Column(db.String,nullable=False)
 
 
 class TokenStatus:

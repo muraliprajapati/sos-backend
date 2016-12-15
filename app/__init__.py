@@ -9,5 +9,4 @@ mail = Mail(app)
 db = SQLAlchemy(app)
 from models import User,Group
 db.create_all()
-import views
-import user
+import views,user,group

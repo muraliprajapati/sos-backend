@@ -1,11 +1,8 @@
 import datetime
 
 import flask
-from flask.ext.restful import abort, fields, marshal
-from itsdangerous import BadSignature, Serializer
-from itsdangerous import SignatureExpired
-
-from app import Resource, api, request, db, models, mail, Message, app
+from flask.ext.restful import abort, fields, marshal,Resource
+from app import api, request, db, mail, Message, models
 from models import User
 
 data = {
@@ -30,7 +27,6 @@ def add_user_to_db(email, password, user_json):
     db.session.add(user)
     db.session.flush()
     db.session.refresh(user)
-    inserted_id = user.id
     db.session.commit()
     return user
 
