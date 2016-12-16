@@ -1,16 +1,7 @@
-from app.user import data
+from response import user_response, group_response
 from models import Group, User
-from flask.ext.restful import abort, fields, marshal, Resource
-from app import api, request, db, mail, Message
-
-group_response = {
-    'id': fields.Integer,
-    'name': fields.String,
-    'photo': fields.String,
-    'adminId': fields.Integer,
-    'adminName': fields.String,
-    'userlist': fields.String
-}
+from flask.ext.restful import abort, marshal, Resource
+from app import api, request, db
 
 
 class CreateGroup(Resource):
@@ -39,7 +30,7 @@ class CreateGroup(Resource):
             user = User.query.filter_by(id=id).first()
             if user:
                 group.g_users.append(user)
-                op = marshal(user, data)
+                op = marshal(user, user_response)
                 members.append(op)
         db.session.commit()
         op1 = marshal(group, group_response)
@@ -63,7 +54,7 @@ class EditGroup(Resource):
         group.adminId = group_json['adminId']
         group.userlist = group_json['userlist']
         member_id_list = group_json['userlist'].split(',')
-        member_id_list = map(int,member_id_list)
+        member_id_list = map(int, member_id_list)
 
         if not member_id_list: abort(400)
         db.session.commit()
@@ -87,11 +78,27 @@ class EditGroup(Resource):
             user = User.query.filter_by(id=uid).first()
             if user and user not in old_members:
                 group.g_users.append(user)
-            op = marshal(user, data)
+            op = marshal(user, user_response)
             members.append(op)
         db.session.commit()
         op1 = marshal(group, group_response)
 
+        return {
+            'code': 200,
+            'description': 'OK',
+            'group': op1,
+            'member': members
+        }
+
+    def get(self, id):
+        group = Group.query.filter_by(id = id).first()
+        group_members = group.g_users
+        op1 = marshal(group,group_response)
+        members = []
+        for user in group_members:
+            if user:
+                op = marshal(user, user_response)
+                members.append(op)
         return {
             'code': 200,
             'description': 'OK',

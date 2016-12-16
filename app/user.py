@@ -1,18 +1,9 @@
 import datetime
-
 import flask
-from flask.ext.restful import abort, fields, marshal,Resource
+from flask.ext.restful import abort, marshal, Resource
 from app import api, request, db, mail, Message, models
+from response import group_response, user_response
 from models import User
-
-data = {
-    'id': fields.Integer,
-    'name': fields.String,
-    'city': fields.String,
-    'phone': fields.String,
-    'photo': fields.String,
-    'sosCount': fields.Integer
-}
 
 
 def add_user_to_db(email, password, user_json):
@@ -52,7 +43,7 @@ class LoginRegister(Resource):
         if not user: abort(404, message='user not found')
         if models.is_user_verified(email):
             if user.verify_password(password):
-                op = marshal(user, data)
+                op = marshal(user, user_response)
                 return {
                            'code': 200,
                            'data': op
@@ -108,11 +99,27 @@ class ContactRequest(Resource):
             print phone
             user = User.query.filter_by(phone=phone).first()
             if user:
-                op = marshal(user, data)
+                op = marshal(user, user_response)
                 response.append(op)
-        return {'data':response}
+        return {'data': response}
+
+
+class UserGroups(Resource):
+    def get(self, id):
+        user = User.query.filter_by(id=id).first()
+        user_groups = user.groups
+        op_response = []
+        for g in user_groups:
+            op = marshal(g, group_response)
+            op_response.append(op)
+        return {
+            'code': 200,
+            'description': 'OK',
+            'data': op_response
+        }
 
 
 api.add_resource(LoginRegister, '/login')
 api.add_resource(EmailVerification, '/confirm/<string:token>')
 api.add_resource(ContactRequest, '/contacts')
+api.add_resource(UserGroups, '/user/groups/<int:id>')
