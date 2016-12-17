@@ -1,3 +1,4 @@
+from app import push_notification
 from response import user_response, group_response
 from models import Group, User
 from flask.ext.restful import abort, marshal, Resource
@@ -13,11 +14,14 @@ class CreateGroup(Resource):
         group_photo = group_json['photo']
         group_admin = group_json['adminId']
         group_users_list = group_json['userlist']
+        group_users_list = group_users_list + "," + str(group_admin)
         member_id_list = group_users_list.split(',')
+        member_id_list = map(int,member_id_list)
         if not member_id_list: abort(400)
-
+        # delimiter = ','
+        # group_users_list = delimiter.join(member_id_list)
         admin = User.query.filter_by(id=group_admin).first()
-        group = Group(name=group_name, photo=group_photo, adminId=group_admin,
+        group = Group(name=group_name, photo='xyzabc', adminId=group_admin,
                       adminName=admin.name, userlist=group_users_list)
         db.session.add(group)
         db.session.flush()
@@ -30,6 +34,8 @@ class CreateGroup(Resource):
             user = User.query.filter_by(id=id).first()
             if user:
                 group.g_users.append(user)
+                if user.id != group_admin:
+                    push_notification.send_group_subscription_message(user.fcm_token,group.id)
                 op = marshal(user, user_response)
                 members.append(op)
         db.session.commit()

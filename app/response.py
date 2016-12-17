@@ -2,6 +2,7 @@ from flask.ext.restful import fields
 
 user_response = {
     'id': fields.Integer,
+    'email':fields.String,
     'name': fields.String,
     'city': fields.String,
     'phone': fields.String,

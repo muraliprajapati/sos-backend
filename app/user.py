@@ -4,6 +4,7 @@ from flask.ext.restful import abort, marshal, Resource
 from app import api, request, db, mail, Message, models
 from response import group_response, user_response
 from models import User
+import push_notification
 
 
 def add_user_to_db(email, password, user_json):
@@ -14,7 +15,7 @@ def add_user_to_db(email, password, user_json):
     verified = False
     reg_time = datetime.datetime.now()
     user = User(email=email, password=password, name=name, city=city, phone=phone,
-                photo=photo, isVerified=verified, reg_time=reg_time)
+                photo='abcdef', isVerified=verified, reg_time=reg_time)
     db.session.add(user)
     db.session.flush()
     db.session.refresh(user)
@@ -96,9 +97,10 @@ class ContactRequest(Resource):
         contact_list = contact_csv.split(',')
         response = []
         for phone in contact_list:
-            print phone
+
             user = User.query.filter_by(phone=phone).first()
             if user:
+                print user.phone
                 op = marshal(user, user_response)
                 response.append(op)
         return {'data': response}
@@ -118,8 +120,31 @@ class UserGroups(Resource):
             'data': op_response
         }
 
+class UserFCMToken(Resource):
+    def post(self,id):
+        user = User.query.filter_by(id=id).first()
+        fcm_token = request.get_json()['token']
+        user.fcm_token = fcm_token
+        db.session.commit()
+        return request.get_json()
+
+class UserChatMsg(Resource):
+    
+    def post(self):
+        msg = request.get_json()
+        topic = msg['groupId']
+        push_notification.send_message_to_groups(topic,msg)
+        return {
+        'data':msg
+        }
+        
+        
+
+
 
 api.add_resource(LoginRegister, '/login')
 api.add_resource(EmailVerification, '/confirm/<string:token>')
 api.add_resource(ContactRequest, '/contacts')
 api.add_resource(UserGroups, '/user/groups/<int:id>')
+api.add_resource(UserFCMToken,'/user/token/<int:id>')
+api.add_resource(UserChatMsg,'/user/chat')
